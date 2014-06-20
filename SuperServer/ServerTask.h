@@ -27,6 +27,7 @@ class ServerTask : public tcp_task
 		bool handle_verify(const void* ptr, const uint32_t len);
 		bool handle_wait_sync(const void* ptr, const uint32_t len);
 		void handle_msg(const void* ptr, const uint32_t len);
+		void handle_timeout(const boost::system::error_code & code);
 		int recycleConn();
 		void addToContainer();
 		void removeFromContainer();

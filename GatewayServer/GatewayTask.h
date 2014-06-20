@@ -13,7 +13,7 @@ class GatewayTask : public tcp_task
 
     virtual ~GatewayTask() {}
 
-	void handle_verify(const void* ptr, const uint32_t len);
+	bool handle_verify(const void* ptr, const uint32_t len);
 	//void handle_wait_sync(const void* ptr, const uint32_t len);
 	//bool wait_sync_msg(const Cmd::t_NullCmd* cmd, const uint32_t len);
 

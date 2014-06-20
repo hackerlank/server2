@@ -55,7 +55,5 @@ class LoginTask : public tcp_task
 
 		DWORD dwClientVersion;
 		bool requestLogin(const Cmd::stUserRequestLoginCmd *ptCmd);
-	protected:
-		void handle_error(const boost::system::error_code& error);
 };
 

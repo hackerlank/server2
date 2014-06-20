@@ -79,6 +79,7 @@ void LoginTask::handle_msg(const void* ptr, const uint32_t len) {
 			{
 				if (handle_verify(ptr, len))
 				{
+					addToContainer();
 					m_state = OKAY;
 					async_read();
 				}
@@ -193,18 +194,3 @@ void LoginTask::LoginReturn(const BYTE retcode,const bool tm)
 	if (tm) close();
 }
 
-void LoginTask::handle_error(const boost::system::error_code& error)
-{
-	switch ( m_state)
-	{
-		case VERIFY:
-			{
-			}
-			break;
-		case OKAY:
-			{
-			}
-			break;
-	}
-	close();
-}

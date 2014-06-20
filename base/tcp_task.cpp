@@ -25,6 +25,17 @@ const std::string tcp_task::get_remote_ip() const
 	}
 }
 
+const unsigned short tcp_task::get_port() const 
+{
+	boost::system::error_code ec;
+	ip::tcp::socket::endpoint_type endpoint = sock_.remote_endpoint(ec);
+	if (ec)
+		return 0;
+	else {
+		return endpoint.port();
+	}
+}
+
 void tcp_task::start()
 {
 
@@ -93,6 +104,31 @@ bool tcp_task::decode_header() {
 }
 
 void tcp_task::handle_error(const boost::system::error_code& error) {
+	switch (m_state)
+	{
+		case VERIFY:
+			{
+			}
+			break;
+		case SYNC_WAITING:
+			{
+				//in timetick thread change task state to SYNC
+				uniqueRemove();
+			}
+			break;
+		case SYNC:
+			{
+				uniqueRemove();
+			}
+			break;
+		case OKAY:
+			{
+				removeFromContainer();
+				uniqueRemove();
+			}
+			break;
+
+	}
 	close();
 }
 
@@ -111,9 +147,10 @@ void tcp_task::handle_write( const boost::system::error_code& error, std::size_t
 }
 
 void tcp_task::close() { 
-	Xlogger->debug("%s use count = %d", __PRETTY_FUNCTION__, shared_from_this().use_count());
+	Xlogger->debug("%s ip=%s,port=%u", __PRETTY_FUNCTION__, get_remote_ip().c_str(),
+			get_port());
+	//Xlogger->debug("%s use count = %d", __PRETTY_FUNCTION__, shared_from_this().use_count());
 	boost::system::error_code ec;
 	sock_.shutdown(ip::tcp::socket::shutdown_both, ec);
-	Xlogger->debug("%s use count = %d", __PRETTY_FUNCTION__, shared_from_this().use_count());
 }
 

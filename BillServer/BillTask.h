@@ -17,7 +17,7 @@ class BillTask : public tcp_task, public MessageQueue
 
     virtual ~BillTask() {}
 
-	void handle_verify(const void* ptr, const uint32_t len);
+	bool handle_verify(const void* ptr, const uint32_t len);
 	void handle_msg(const void* ptr, const uint32_t len);
 	//void handle_wait_sync(const void* ptr, const uint32_t len);
 	//bool wait_sync_msg(const Cmd::t_NullCmd* cmd, const uint32_t len);
@@ -46,4 +46,6 @@ private:
     bool msgParse_Scene(const Cmd::t_NullCmd *,const DWORD);
     bool msgParse_Session(const Cmd::t_NullCmd*,const DWORD);
 	*/
+protected:
+	void handle_error(const boost::system::error_code & code);
 };

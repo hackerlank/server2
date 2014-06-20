@@ -102,9 +102,12 @@ bool ServerTask::handle_verify(const void* cmd, const uint32_t len) {
 	if (Cmd::Super::CMD_STARTUP == ptCmd->cmd 
 			&& Cmd::Super::PARA_STARTUP_REQUEST == ptCmd->para) {
 		if (verify(ptCmd->wdServerType,ptCmd->pstrIP)) {
-			Xlogger->debug("%s : success", __PRETTY_FUNCTION__);
 			if (uniqueAdd())
 			{
+				Xlogger->debug("%s : success", __PRETTY_FUNCTION__);
+
+				timer_.expires_from_now(boost::posix_time::seconds(15));
+				timer_.async_wait(bind(&tcp_task::handle_timeout,shared_from_this(), _1));
 				return true;
 			}
 		}
@@ -112,6 +115,18 @@ bool ServerTask::handle_verify(const void* cmd, const uint32_t len) {
 	Xlogger->debug("%s : failed", __PRETTY_FUNCTION__);
 	handle_error(boost::system::error_code());
 	return false;
+}
+
+void ServerTask::handle_timeout(const boost::system::error_code& error)
+{
+	if (error != boost::asio::error::operation_aborted)
+	{
+		if (m_state != OKAY)
+		{
+			handle_error(error);
+			Xlogger->debug("%s : failed state=%u", __PRETTY_FUNCTION__,m_state);
+		}
+	}
 }
 
 bool ServerTask::verifyTypeOK(const WORD wdType,std::vector<shared_ptr<ServerTask> > &sv) {
@@ -209,6 +224,8 @@ bool ServerTask::checkDependency() {
 	for(Container::iterator it = ses.begin(); it != ses.end(); ++it) {
 		shared_ptr<ServerTask>  pDst = ServerManager::getInstance().getServer(it->first.wdServerID);
 		if (!pDst) {
+			Xlogger->debug("%s wdServerID=%u,name=%s,type=%u",__PRETTY_FUNCTION__,
+					it->first.wdServerID,it->first.pstrName,it->first.wdServerType);
 			return false;
 		}
 	}
@@ -260,12 +277,6 @@ int ServerTask::recycleConn()
 	return 1;
 }
 
-/**
-* \brief 添加到全局容器中
-*
-* 实现了虚函数<code>x_tcptask::addToContainer</code>
-*
-*/
 void ServerTask::addToContainer()
 {
 	ServerManager::getInstance().addServer(boost::dynamic_pointer_cast<ServerTask>(shared_from_this()));
@@ -683,6 +694,7 @@ void ServerTask::handle_msg(const void* ptr, const uint32_t len) {
 			{
 				if (handle_wait_sync(ptr, len))
 				{
+					addToContainer();
 					async_read();
 					m_state = OKAY;
 				}
@@ -727,4 +739,5 @@ void ServerTask::handle_error(const boost::system::error_code& error)
 	}
 
 	close();
+	Xlogger->debug("%s serverid=%u",__PRETTY_FUNCTION__,se_.wdServerID);
 }

@@ -2,10 +2,44 @@
 #include "RecordServer.h"
 #include "recordcmd.h"
 
+void RecordTask::handle_error(const boost::system::error_code& error)
+{
+	switch( m_state)
+	{
+		case VERIFY:
+			{
+			}
+			break;
+		case OKAY:
+			{
+				removeFromContainer();
+				uniqueRemove();
+			}
+			break;
+	}
+	close();
+}
+
 void RecordTask::handle_msg(const void* ptr, const uint32_t len){
 	//MessageQueue::msgParse(ptr, len);
-	cmdMsgParse( (const Cmd::t_NullCmd*)ptr, len);
-	async_read();
+	switch (m_state)
+	{
+		case OKAY:
+			{
+				cmdMsgParse( (const Cmd::t_NullCmd*)ptr, len);
+				async_read();
+			}
+			break;
+		case VERIFY:
+			{
+				if (handle_verify(ptr, len))
+				{
+					m_state = OKAY;
+					async_read();
+				}
+			}
+			break;
+	}
 }
 
 bool RecordTask::verifyLogin(const Cmd::Record::t_LoginRecord *ptCmd)
@@ -26,16 +60,18 @@ bool RecordTask::verifyLogin(const Cmd::Record::t_LoginRecord *ptCmd)
 	return false;
 }
 
-void RecordTask::handle_verify(const void* ptr, const uint32_t len) {
-	Xlogger->debug("RecordTask::verifyConn");
+bool RecordTask::handle_verify(const void* ptr, const uint32_t len) {
 	using namespace Cmd::Record;
 	if (verifyLogin((t_LoginRecord *)ptr)) {
 		if (uniqueAdd())
 		{
-			set_state(state_okay_);
-			return ;
+			Xlogger->debug("%s success", __PRETTY_FUNCTION__);
+			return true;
 		}
 	}
+	Xlogger->debug("%s fail", __PRETTY_FUNCTION__);
+	handle_error(boost::system::error_code());
+	return false;
 }
 
 /**

@@ -16,7 +16,7 @@ class RecordTask : public tcp_task//, public MessageQueue
 
     virtual ~RecordTask() {}
 
-	void handle_verify(const void* ptr, const uint32_t len);
+	bool handle_verify(const void* ptr, const uint32_t len);
 	void handle_msg(const void* ptr, const uint32_t len);
 	//void handle_wait_sync(const void* ptr, const uint32_t len);
 	bool verify_msg(const Cmd::t_NullCmd* cmd, const uint32_t len);
@@ -55,4 +55,6 @@ private:
     bool deleteCharTest(Cmd::Record::t_Delete_CharTest_SceneRecord *rev);
 #endif
 */
+protected:
+	void handle_error(const boost::system::error_code & error);
 };

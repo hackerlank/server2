@@ -29,6 +29,7 @@ public:
 	tcp_task(io_service& ios);
 	virtual ~tcp_task();
 	const std::string get_remote_ip() const;
+	const unsigned short get_port() const;
 	virtual void start();
 	virtual bool uniqueAdd(){return true;}
 	virtual bool uniqueRemove(){return true;}
@@ -36,7 +37,7 @@ public:
 	virtual void removeFromContainer(){}
 
 	//virtual void handle_verify(const void* ptr, const uint32_t len) = 0;
-	//virtual void handle_timeout(const boost::system::error_code& error) = 0;
+	virtual void handle_timeout(const boost::system::error_code& error) {}
 	//virtual void handle_wait_sync(const void* ptr, const uint32_t len){}
 
 	virtual void async_read();

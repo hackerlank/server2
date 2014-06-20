@@ -161,7 +161,7 @@ void RecordService::exec() {
 
 		superClient->doCmd();
 		static time_t t = time(0);
-		if (time(0) > t+2 )
+		if (time(0) > t+10 )
 		{
 			t = time(0);
 			Cmd::Super::t_Startup_test cmd;

@@ -47,9 +47,9 @@ class ServerManager : boost::noncopyable
     typedef ServerTaskHashmap::const_iterator ServerTaskHashmap_const_iterator;
     typedef ServerTaskHashmap::value_type ServerTaskHashmap_pair;
 	boost::mutex mutex_container;
-    Container container;
+    Container container;		//all connection verifyed
 	boost::mutex mutex_hashmap;
-    ServerTaskHashmap taskUniqueContainer;
+    ServerTaskHashmap taskUniqueContainer;	//all connection
 
     static ServerManager *instance;
 

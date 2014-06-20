@@ -26,6 +26,8 @@ x_subnetservice::~x_subnetservice()
 
 bool x_subnetservice::init()
 {
+	superClient->setOnClose(boost::bind(&x_subnetservice::Terminate, this));
+
 	Xlogger->debug("x_subnetservice::init");
 	if (!x_service::init())
 		return false;

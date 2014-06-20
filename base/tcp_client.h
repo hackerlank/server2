@@ -4,6 +4,7 @@
 #include <vector>
 #include <strings.h>
 #include <boost/bind.hpp>
+#include <boost/function.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include "x_msgqueue.h"
 using namespace boost;
@@ -94,6 +95,8 @@ public:
 	}
 
 	void close() {
+		on_close_();
+
 		boost::system::error_code ec;
 		sock_.shutdown(ip::tcp::socket::shutdown_both, ec);
 		sock_.close(ec);
@@ -131,6 +134,11 @@ public:
 			return true;
 	}
 	virtual void msg_parse(const void* ptr, const uint32_t len) = 0;
+
+	virtual void setOnClose(boost::function<void ()> cb)
+	{
+		on_close_ = cb;
+	}
 protected:
 	io_service& ios_;
 	ip::tcp::socket sock_;
@@ -142,4 +150,6 @@ protected:
 	char header_[PH_LEN];
 	uint16_t msg_length_;
 	char msg_[MAX_MSG_SIZE];
+
+	boost::function<void ()> on_close_;
 };

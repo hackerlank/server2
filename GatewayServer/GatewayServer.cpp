@@ -107,7 +107,7 @@ bool GatewayService::init() {
 	}
 
 	pLoginSessionM.reset(new LoginSessionManager());
-	notifyLoginServer();
+	//notifyLoginServer();
 	//if (!GatewayUserM::getMe().init())
 		//return false;
 	
@@ -208,4 +208,11 @@ void GatewayService::exec() {
 			sessionClient->async_write(&test1, sizeof(test1));
 		}
 	}
+}
+
+bool GatewayService::validate()
+{
+	x_subnetservice::validate();
+	notifyLoginServer();
+	return true;
 }

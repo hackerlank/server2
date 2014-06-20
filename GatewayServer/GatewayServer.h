@@ -53,5 +53,7 @@ class GatewayService : public x_subnetservice {
 		bool init();
 		tcp_task_ptr newTCPTask(boost::asio::io_service& ios);
 		void final();
+	protected:
+		bool validate();
 };
 

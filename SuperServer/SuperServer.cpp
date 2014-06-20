@@ -306,8 +306,8 @@ void SuperService::exec() {
 	//boost::timer startTimer;
 
 	while(!isTerminate()) {
-		boost::this_thread::sleep_for(ms(5000));
-		Xlogger->debug("SuperTimeTick");
+		boost::this_thread::sleep_for(ms(3000));
+		//Xlogger->debug("SuperTimeTick");
 		ServerManager::getInstance().checkSequence();
 
 		static time_t t = time(0);

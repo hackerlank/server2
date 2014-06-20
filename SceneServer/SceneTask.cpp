@@ -2,8 +2,24 @@
 #include "SceneServer.h"
 
 void SceneTask::handle_msg(const void* ptr, const uint32_t len){
-	MessageQueue::msgParse(ptr, len);
-	async_read();
+	switch (m_state)
+	{
+		case VERIFY:
+			{
+				if (handle_verify(ptr, len))
+				{
+					m_state = OKAY;
+					async_read();
+				}
+			}
+			break;
+		case OKAY:
+			{
+				MessageQueue::msgParse(ptr, len);
+				async_read();
+			}
+			break;
+	}
 }
 
 bool SceneTask::verifyLogin(const Cmd::Scene::t_LoginScene *ptCmd)
@@ -24,17 +40,18 @@ bool SceneTask::verifyLogin(const Cmd::Scene::t_LoginScene *ptCmd)
 	return false;
 }
 
-void SceneTask::handle_verify(const void* pstrCmd, const uint32_t len) {
+bool SceneTask::handle_verify(const void* pstrCmd, const uint32_t len) {
 	using namespace Cmd::Scene;
 	if (verifyLogin((t_LoginScene *)pstrCmd)) {
 		Xlogger->debug("%s ok", __PRETTY_FUNCTION__);
 		if (uniqueAdd())
 		{
-			set_state(state_okay_);
-			return ;
+			return true;
 		}
 	}
 	Xlogger->debug("%s failed", __PRETTY_FUNCTION__);
+	handle_error(boost::system::error_code());
+	return false;
 }
 
 int SceneTask::recycleConn()

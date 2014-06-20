@@ -5,8 +5,24 @@
 using namespace boost;
 
 void BillTask::handle_msg(const void* ptr, const uint32_t len){
-	MessageQueue::msgParse(ptr, len);
-	async_read();
+	switch (m_state)
+	{
+		case VERIFY:
+			{
+				if (handle_verify(ptr, len))
+				{
+					m_state = OKAY;
+					async_read();
+				}
+			}
+			break;
+		case OKAY:
+			{
+				MessageQueue::msgParse(ptr, len);
+				async_read();
+			}
+			break;
+	}
 }
 
 bool BillTask::verifyLogin(const Cmd::Bill::t_LoginBill *ptCmd)
@@ -27,17 +43,18 @@ bool BillTask::verifyLogin(const Cmd::Bill::t_LoginBill *ptCmd)
 	return false;
 }
 
-void BillTask::handle_verify(const void* pstrCmd, const uint32_t len) {
+bool BillTask::handle_verify(const void* pstrCmd, const uint32_t len) {
 	using namespace Cmd::Bill;
 	if (verifyLogin((t_LoginBill *)pstrCmd)) {
 		Xlogger->debug("%s ok", __PRETTY_FUNCTION__);
 		if (uniqueAdd())
 		{
-			set_state(state_okay_);
-			return ;
+			return true;
 		}
 	}
 	Xlogger->debug("%s failed", __PRETTY_FUNCTION__);
+	handle_error(boost::system::error_code());
+	return false;
 }
 
 /**
@@ -417,3 +434,17 @@ bool BillTask::sendCmdToUser(const uint32_t id,const void *pstrCmd,const DWORD n
 	return sendCmd(scmd,sizeof(t_Bill_ForwardUser)+nCmdLen);
 }
 
+
+void BillTask::handle_error(const boost::system::error_code & error)
+{
+	switch (m_state)
+	{
+		case OKAY:
+			{
+				removeFromContainer();
+				uniqueRemove();
+			}
+			break;
+	}
+	close();
+}
